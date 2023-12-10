@@ -1,81 +1,111 @@
-<script setup lang="ts">
-import { RouterLink, RouterView } from 'vue-router'
-import HelloWorld from './components/HelloWorld.vue'
-</script>
-
 <template>
-  <header>
-
-    <div class="wrapper">
-      <div></div>
-      <nav>
-       <div>sdcsdc</div>
-      </nav>
+  <div id="app">
+    <div class="position">
+      <div>Item 1 is {{ statusVisibilityItem1 }}</div>
+      <div>Item 2 is {{ statusVisibilityItem2 }}</div>
     </div>
-  </header>
-
+    <div class="container">
+      <div ref="itme1Ref" class="box">Item 1</div>
+    </div>
+    <div class="container">
+      <div ref="itme2Ref" class="box">Item 2</div>
+    </div>
+  </div>
 </template>
 
-<style scoped>
-header {
-  line-height: 1.5;
-  max-height: 100vh;
-}
+<script>
+import { ref, watch, onUnmounted, computed } from 'vue';
 
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
-}
+function useElementVisible(elementRef) {
+  const isVisible = ref(false);
 
-nav {
-  width: 100%;
-  font-size: 12px;
-  text-align: center;
-  margin-top: 2rem;
-}
-
-nav a.router-link-exact-active {
-  color: var(--color-text);
-}
-
-nav a.router-link-exact-active:hover {
-  background-color: transparent;
-}
-
-nav a {
-  display: inline-block;
-  padding: 0 1rem;
-  border-left: 1px solid var(--color-border);
-}
-
-nav a:first-of-type {
-  border: 0;
-}
-
-@media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
+  function checkPosition() {
+    const element = elementRef.value;
+    if (element) {
+      const boundingBox = element.getBoundingClientRect();
+      const { top, left, right, bottom } = boundingBox;
+      isVisible.value =
+        top <= window.innerHeight &&
+        left <= window.innerWidth &&
+        bottom >= 0 &&
+        right >= 0;
+    } else {
+      isVisible.value = false;
+    }
   }
 
-  .logo {
-    margin: 0 2rem 0 0;
-  }
+  watch(elementRef, () => check());
 
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
+  window.addEventListener('scroll', checkPosition);
 
-  nav {
-    text-align: left;
-    margin-left: -1rem;
-    font-size: 1rem;
+  onUnmounted(() => {
+    window.removeEventListener('scroll', checkPosition);
+  });
 
-    padding: 1rem 0;
-    margin-top: 1rem;
-  }
+  return isVisible;
+}
+
+export default {
+  setup() {
+    const itme1Ref = ref(null);
+    const itme2Ref = ref(null);
+
+    const item1 = useElementVisible(itme1Ref);
+    const item2 = useElementVisible(itme2Ref);
+
+    const statusVisibilityItem1 = computed(() =>
+      item1.value ? 'visible' : 'not visible'
+    );
+
+    const statusVisibilityItem2 = computed(() =>
+      item2.value ? 'visible' : 'not visible'
+    );
+
+
+    return {
+      itme1Ref,
+      itme2Ref,
+      statusVisibilityItem1,
+      statusVisibilityItem2,
+    };
+  },
+};
+</script>
+
+<style>
+#app {
+  height: 200vh;
+  background: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.position {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 50px;
+  background: #1890ff;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+}
+
+.container {
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.box {
+  padding: 3rem;
+  background: red;
+  color: white;
+  border-radius: 5px;
 }
 </style>
